@@ -1,7 +1,7 @@
 ﻿using DatingApp_API.Data;
-using DatingApp_API.Entities;
 using DatingApp_API.Interfaces;
 using DatingApp_API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
@@ -22,27 +22,28 @@ namespace DatingApp_API.Controllers
             {
                 return BadRequest("User already exists with that username or email.");
             }
+            return Ok();
 
-            using var hmac = new HMACSHA512();
+            //using var hmac = new HMACSHA512();
 
-            var hashedPassword = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password));
+            //var hashedPassword = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password));
 
-            var user = new User()
-            {
-                Email = registerDTO.Email.ToLower(),
-                Password = hashedPassword,
-                Username = registerDTO.Username.ToLower(),
-                PasswordSalt = hmac.Key
-            };
+            //var user = new User()
+            //{
+            //    Email = registerDTO.Email.ToLower(),
+            //    Password = hashedPassword,
+            //    Username = registerDTO.Username.ToLower(),
+            //    PasswordSalt = hmac.Key
+            //};
 
-            await _dbcontext.Users.AddAsync(user);
-            await _dbcontext.SaveChangesAsync();
+            //await _dbcontext.Users.AddAsync(user);
+            //await _dbcontext.SaveChangesAsync();
 
-            return new UserDTO()
-            {
-                Username = user.Username,
-                Token = tokenService.CreateToken(user)
-            };
+            //return new UserDTO()
+            //{
+            //    Username = user.Username,
+            //    Token = tokenService.CreateToken(user)
+            //};
 
         }
 

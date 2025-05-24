@@ -1,11 +1,18 @@
-﻿namespace DatingApp_API.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace DatingApp_API.Models
 {
     public class RegisterDTO
     {
-        public required string Email { get; set; }   
+        [Required]
+        public string Email { get; set; } = string.Empty;
 
-        public required string Username { get; set; }   
+        [Required]
+        [StringLength(50)]
+        public required string Username { get; set; } = string.Empty;
 
-        public required string Password { get; set; }   
+        [Required]
+        [StringLength(50, MinimumLength = 6)]
+        public required string Password { get; set; }  = string.Empty ;  
     }
 }

@@ -1,5 +1,9 @@
 
 using DatingApp_API.ApplicationExstensions;
+using DatingApp_API.Data;
+using DatingApp_API.Middleware;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 
 namespace DatingApp_API
@@ -23,6 +27,7 @@ namespace DatingApp_API
                 app.UseSwaggerUI();
             }
 
+            app.UseMiddleware<ExceptionMiddleware>();
             app.UseCors(opt =>
             {
                 opt.AllowAnyHeader();
@@ -34,6 +39,19 @@ namespace DatingApp_API
             app.UseAuthorization();
 
             app.MapControllers();
+
+            //using var scope = app.Services.CreateScope();
+            //var services = scope.ServiceProvider;
+            //try
+            //{
+            //    var context = services.GetRequiredService<DataContext>();
+            //    await context.Database.MigrateAsync();
+            //    await Seed.SeedUsers(context);
+            //}
+            //catch (Exception ex) { 
+            //    var logger = services.GetRequiredService<ILogger<Program>>();
+            //    logger.LogError(ex, "An error occured during migration");
+            //}
 
             app.Run();
         }
