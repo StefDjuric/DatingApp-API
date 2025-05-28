@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
-using DatingApp_API.Entities;
 using DatingApp_API.Interfaces;
 using DatingApp_API.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 
 namespace DatingApp_API.Controllers
@@ -11,7 +11,7 @@ namespace DatingApp_API.Controllers
     [ApiController] 
     [Route("api/[controller]")]
     [Authorize]
-    public class UsersController(IUserRepository userRepository) : ControllerBase
+    public class UsersController(IUserRepository userRepository, IMapper mapper) : ControllerBase
     {
         private readonly IUserRepository _userRepository = userRepository;
         //private readonly IMapper _mapper = mapper;
@@ -47,6 +47,24 @@ namespace DatingApp_API.Controllers
             }
 
             return Ok(user);
+        }
+
+        [HttpPut("edit-member")]
+        public async Task<ActionResult> UpdateUser(MemberEditDTO memberEditDTO)
+        {
+            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if(username == null) return BadRequest("No username found in token.");
+
+            var user = await _userRepository.GetUserByUsernameAsync(username);
+
+            if(user == null) return BadRequest("Could not find user");
+
+            mapper.Map(memberEditDTO, user);
+
+            if(await _userRepository.SaveAllAsync()) return NoContent();
+
+            return BadRequest("Failed to update the user.");
         }
     }
 }
