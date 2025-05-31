@@ -1,7 +1,7 @@
 ﻿using DatingApp_API.Data;
+using DatingApp_API.Entities;
 using DatingApp_API.Interfaces;
 using DatingApp_API.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
