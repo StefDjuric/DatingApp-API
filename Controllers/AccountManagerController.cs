@@ -1,4 +1,5 @@
-﻿using DatingApp_API.Data;
+﻿using AutoMapper;
+using DatingApp_API.Data;
 using DatingApp_API.Entities;
 using DatingApp_API.Interfaces;
 using DatingApp_API.Models;
@@ -11,7 +12,7 @@ namespace DatingApp_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AccountManagerController(DataContext dbContext, ITokenService tokenService) : ControllerBase
+    public class AccountManagerController(DataContext dbContext, ITokenService tokenService, IMapper mapper) : ControllerBase
     {
         private readonly DataContext _dbcontext = dbContext;
 
@@ -22,28 +23,27 @@ namespace DatingApp_API.Controllers
             {
                 return BadRequest("User already exists with that username or email.");
             }
-            return Ok();
+           
 
-            //using var hmac = new HMACSHA512();
+            using var hmac = new HMACSHA512();
 
-            //var hashedPassword = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password));
+            var hashedPassword = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password));
 
-            //var user = new User()
-            //{
-            //    Email = registerDTO.Email.ToLower(),
-            //    Password = hashedPassword,
-            //    Username = registerDTO.Username.ToLower(),
-            //    PasswordSalt = hmac.Key
-            //};
+            var user = mapper.Map<User>(registerDTO);
 
-            //await _dbcontext.Users.AddAsync(user);
-            //await _dbcontext.SaveChangesAsync();
+            user.Username = registerDTO.Username.ToLower();
+            user.Password = hashedPassword;
+            user.PasswordSalt = hmac.Key; 
 
-            //return new UserDTO()
-            //{
-            //    Username = user.Username,
-            //    Token = tokenService.CreateToken(user)
-            //};
+            await _dbcontext.Users.AddAsync(user);
+            await _dbcontext.SaveChangesAsync();
+
+            return new UserDTO()
+            {
+                Username = user.Username,
+                Token = tokenService.CreateToken(user),
+                KnownAs = registerDTO.KnownAs,
+            };
 
         }
 
@@ -66,7 +66,8 @@ namespace DatingApp_API.Controllers
             return new UserDTO()
             {
                 Username = user.Username,
-                Token = tokenService.CreateToken(user)
+                Token = tokenService.CreateToken(user),
+                KnownAs = user.KnownAs
             };
         }
 

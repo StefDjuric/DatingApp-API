@@ -1,9 +1,12 @@
-﻿namespace DatingApp_API.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace DatingApp_API.Models
 {
     public class LoginDTO
     {
-        public required string EmailOrUsername { get; set; }
-
-        public required string Password { get; set; }
+        [Required]
+        public string? EmailOrUsername { get; set; } = string.Empty;
+        [Required]
+        public string? Password { get; set; } = string.Empty;
     }
 }

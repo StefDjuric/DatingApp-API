@@ -2,6 +2,7 @@
 using DatingApp_API.ApplicationExstensions;
 using DatingApp_API.Entities;
 using DatingApp_API.Models;
+using System.Text;
 
 namespace DatingApp_API.Helpers
 {
@@ -16,6 +17,9 @@ namespace DatingApp_API.Helpers
             CreateMap<Photo, PhotoDTO>();
 
             CreateMap<MemberEditDTO, User>();
+            CreateMap<RegisterDTO, User>();
+            CreateMap<string, DateOnly>().ConvertUsing(s => DateOnly.Parse(s));
+            CreateMap<string, byte[]>().ConvertUsing(s => Encoding.UTF8.GetBytes(s));
         }
     }
 }
