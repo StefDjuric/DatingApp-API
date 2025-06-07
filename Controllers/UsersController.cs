@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using CloudinaryDotNet.Actions;
+using DatingApp_API.ApplicationExstensions;
 using DatingApp_API.Entities;
+using DatingApp_API.Helpers;
 using DatingApp_API.Interfaces;
 using DatingApp_API.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -10,6 +12,7 @@ using System.Security.Claims;
 
 namespace DatingApp_API.Controllers
 {
+    [ServiceFilter(typeof(LogUserActivity))]
     [ApiController] 
     [Route("api/[controller]")]
     [Authorize]
@@ -20,9 +23,18 @@ namespace DatingApp_API.Controllers
         //private readonly IMapper _mapper = mapper;
 
         [HttpGet] // api/users
-        public async Task<ActionResult<IEnumerable<MemberDTO>>> GetUsers()
+        public async Task<ActionResult<PagedList<MemberDTO>>> GetUsers([FromQuery] UserParams userParams)
         {
-            var users = await userRepository.GetAllMembersAsync();
+            var currentUsername = User.FindFirst(ClaimTypes.Name)?.Value;
+
+            if (currentUsername == null) return BadRequest("No username found in token.");
+
+            userParams.CurrentUsername = currentUsername;
+
+            var users = await userRepository.GetAllMembersAsync(userParams);
+
+            Response.AddPaginationHeader(users);
+
             return Ok(users);
         }
 
@@ -55,7 +67,7 @@ namespace DatingApp_API.Controllers
         [HttpPut("edit-member")]
         public async Task<ActionResult> UpdateUser(MemberEditDTO memberEditDTO)
         {
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = User.FindFirst(ClaimTypes.Name)?.Value;
 
             if(username == null) return BadRequest("No username found in token.");
 
@@ -73,7 +85,7 @@ namespace DatingApp_API.Controllers
         [HttpPost("upload-photo")]
         public async Task<ActionResult<PhotoDTO>> UploadPhotoToCloudinary(IFormFile file)
         {
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = User.FindFirst(ClaimTypes.Name)?.Value;
             if (username == null) return BadRequest("No username found in token.");
 
             var user = await _userRepository.GetUserByUsernameAsync(username);
@@ -101,7 +113,7 @@ namespace DatingApp_API.Controllers
         [HttpPut("set-main-photo/{photoId:int}")]
         public async Task<ActionResult> SetMainPhoto(int photoId)
         {
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = User.FindFirst(ClaimTypes.Name)?.Value;
 
             if (username == null) return BadRequest("No username found in token");
 
@@ -128,7 +140,7 @@ namespace DatingApp_API.Controllers
         [HttpDelete("delete-photo/{photoId:int}")]
         public async Task<ActionResult> DeletePhoto(int photoId)
         {
-            var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var username = User.FindFirst(ClaimTypes.Name)?.Value;
 
             if(username == null) return BadRequest("No username found in token.");
 

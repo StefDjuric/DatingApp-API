@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using DatingApp_API.Data;
 using DatingApp_API.Entities;
+using DatingApp_API.Helpers;
 using DatingApp_API.Interfaces;
 using DatingApp_API.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -10,6 +11,7 @@ using System.Text;
 
 namespace DatingApp_API.Controllers
 {
+    [ServiceFilter(typeof (LogUserActivity))]
     [ApiController]
     [Route("api/[controller]")]
     public class AccountManagerController(DataContext dbContext, ITokenService tokenService, IMapper mapper) : ControllerBase
@@ -43,6 +45,7 @@ namespace DatingApp_API.Controllers
                 Username = user.Username,
                 Token = tokenService.CreateToken(user),
                 KnownAs = registerDTO.KnownAs,
+                Gender = user.Gender,
             };
 
         }
@@ -67,7 +70,8 @@ namespace DatingApp_API.Controllers
             {
                 Username = user.Username,
                 Token = tokenService.CreateToken(user),
-                KnownAs = user.KnownAs
+                KnownAs = user.KnownAs,
+                Gender = user.Gender,
             };
         }
 

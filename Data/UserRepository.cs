@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using DatingApp_API.Entities;
+using DatingApp_API.Helpers;
 using DatingApp_API.Interfaces;
 using DatingApp_API.Models;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +12,33 @@ namespace DatingApp_API.Data
     {
         private readonly DataContext _context = context;
 
-        public async Task<IEnumerable<MemberDTO>> GetAllMembersAsync()
+        public async Task<PagedList<MemberDTO>> GetAllMembersAsync(UserParams userParams)
         {
-            return await _context.Users.ProjectTo<MemberDTO>(mapper.ConfigurationProvider).ToListAsync();
+            var query = _context.Users.AsQueryable();
+
+            query = query.Where(user => user.Username != userParams.CurrentUsername);
+
+            if(userParams.Gender != null)
+            {
+                query = query.Where(user => user.Gender == userParams.Gender);
+            }
+
+            var minDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-userParams.MaxAge - 1));
+            var maxDob = DateOnly.FromDateTime(DateTime.Today.AddYears(-userParams.MinAge));
+
+            query = query.Where(user => user.DateOfBirth >= minDob && user.DateOfBirth <= maxDob);
+
+            query = userParams.OrderBy switch
+            {
+                "created" => query.OrderByDescending(x => x.CreatedAt),
+                _ => query.OrderByDescending(x => x.LastActive)
+            };
+
+            return await PagedList<MemberDTO>.CreateAsync(query.ProjectTo<MemberDTO>(mapper.ConfigurationProvider),
+                 userParams.PageNumber, userParams.PageSize);
         }
+
+        
 
         public async Task<MemberDTO?> GetMemberByIdAsync(int id)
         {
@@ -37,7 +61,9 @@ namespace DatingApp_API.Data
 
         public async Task<User?> GetUserByUsernameAsync(string username)
         {
-            return await _context.Users.Include(u => u.Photos).SingleOrDefaultAsync(u => u.Username == username);
+            return await _context.Users.Include(u => u.Photos)
+                .SingleOrDefaultAsync(u => u.Username == username);
+
         }
 
         public async Task<IEnumerable<User>> GetUsersAsync()
