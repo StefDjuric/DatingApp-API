@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using CloudinaryDotNet.Actions;
 using DatingApp_API.ApplicationExstensions;
 using DatingApp_API.Entities;
 using DatingApp_API.Helpers;

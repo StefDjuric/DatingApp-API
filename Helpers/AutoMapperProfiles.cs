@@ -20,6 +20,9 @@ namespace DatingApp_API.Helpers
             CreateMap<RegisterDTO, User>();
             CreateMap<string, DateOnly>().ConvertUsing(s => DateOnly.Parse(s));
             CreateMap<string, byte[]>().ConvertUsing(s => Encoding.UTF8.GetBytes(s));
+            CreateMap<Message, MessageDTO>()
+                .ForMember(x => x.SenderPhotoUrl, o => o.MapFrom(s => s.Sender.Photos.FirstOrDefault(x => x.IsMain )!.Url))
+                .ForMember(x => x.RecipientPhotoUrl, o => o.MapFrom(r => r.Recipient.Photos.FirstOrDefault(x => x.IsMain)!.Url));
         }
     }
 }
