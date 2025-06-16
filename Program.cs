@@ -1,7 +1,9 @@
 
 using DatingApp_API.ApplicationExstensions;
 using DatingApp_API.Data;
+using DatingApp_API.Entities;
 using DatingApp_API.Middleware;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
@@ -10,7 +12,7 @@ namespace DatingApp_API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -40,15 +42,20 @@ namespace DatingApp_API
 
             app.MapControllers();
 
+
+            //// SEED DB
             //using var scope = app.Services.CreateScope();
             //var services = scope.ServiceProvider;
             //try
             //{
             //    var context = services.GetRequiredService<DataContext>();
+            //    var userManager = services.GetRequiredService<UserManager<User>>();
+            //    var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
             //    await context.Database.MigrateAsync();
-            //    await Seed.SeedUsers(context);
+            //    await Seed.SeedUsers(userManager, roleManager);
             //}
-            //catch (Exception ex) { 
+            //catch (Exception ex)
+            //{
             //    var logger = services.GetRequiredService<ILogger<Program>>();
             //    logger.LogError(ex, "An error occured during migration");
             //}

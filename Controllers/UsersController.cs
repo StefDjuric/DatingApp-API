@@ -18,8 +18,6 @@ namespace DatingApp_API.Controllers
     public class UsersController(IUserRepository userRepository, IMapper mapper,
         IPhotoService photoService) : ControllerBase
     {
-        private readonly IUserRepository _userRepository = userRepository;
-        //private readonly IMapper _mapper = mapper;
 
         [HttpGet] // api/users
         public async Task<ActionResult<PagedList<MemberDTO>>> GetUsers([FromQuery] UserParams userParams)
@@ -41,7 +39,7 @@ namespace DatingApp_API.Controllers
         [HttpGet("{id:int}")] // api/users/id
         public async Task<ActionResult<MemberDTO>> GetUserById(int id)
         {
-            var user = await _userRepository.GetMemberByIdAsync(id);
+            var user = await userRepository.GetMemberByIdAsync(id);
 
             if(user == null)
             {
@@ -53,7 +51,7 @@ namespace DatingApp_API.Controllers
         [HttpGet("{username}")]
         public async Task<ActionResult<MemberDTO>> GetUserByUsername(string username)
         {
-            var user = await _userRepository.GetMemberByUsernameAsync(username);
+            var user = await userRepository.GetMemberByUsernameAsync(username);
 
             if (user == null)
             {
@@ -70,13 +68,13 @@ namespace DatingApp_API.Controllers
 
             if(username == null) return BadRequest("No username found in token.");
 
-            var user = await _userRepository.GetUserByUsernameAsync(username);
+            var user = await userRepository.GetUserByUsernameAsync(username);
 
             if(user == null) return BadRequest("Could not find user");
 
             mapper.Map(memberEditDTO, user);
 
-            if(await _userRepository.SaveAllAsync()) return NoContent();
+            if(await userRepository.SaveAllAsync()) return NoContent();
 
             return BadRequest("Failed to update the user.");
         }
@@ -87,7 +85,7 @@ namespace DatingApp_API.Controllers
             var username = User.FindFirst(ClaimTypes.Name)?.Value;
             if (username == null) return BadRequest("No username found in token.");
 
-            var user = await _userRepository.GetUserByUsernameAsync(username);
+            var user = await userRepository.GetUserByUsernameAsync(username);
 
             if (user == null) return BadRequest("Not able to update the user.");
 
@@ -103,8 +101,8 @@ namespace DatingApp_API.Controllers
 
             user.Photos.Add(photo);
 
-            if (await _userRepository.SaveAllAsync()) 
-                return CreatedAtAction(nameof(GetUserByUsername), new {username = user.Username}, mapper.Map<PhotoDTO>(photo));
+            if (await userRepository.SaveAllAsync()) 
+                return CreatedAtAction(nameof(GetUserByUsername), new {username = user.UserName}, mapper.Map<PhotoDTO>(photo));
 
             return BadRequest("Could not add photo.");
         }
@@ -116,7 +114,7 @@ namespace DatingApp_API.Controllers
 
             if (username == null) return BadRequest("No username found in token");
 
-            var user = await _userRepository.GetUserByUsernameAsync(username);
+            var user = await userRepository.GetUserByUsernameAsync(username);
 
             if (user == null) return BadRequest("Could not find the user.");
 
@@ -130,7 +128,7 @@ namespace DatingApp_API.Controllers
 
             newMainPhoto.IsMain = true;
 
-            if(await _userRepository.SaveAllAsync()) return NoContent();
+            if(await userRepository.SaveAllAsync()) return NoContent();
 
             return BadRequest("Could not set main photo.");
             
@@ -143,7 +141,7 @@ namespace DatingApp_API.Controllers
 
             if(username == null) return BadRequest("No username found in token.");
 
-            var user = await _userRepository.GetUserByUsernameAsync(username);
+            var user = await userRepository.GetUserByUsernameAsync(username);
 
             if (user == null) return BadRequest("Could not find the user");
 
@@ -159,7 +157,7 @@ namespace DatingApp_API.Controllers
 
             user.Photos.RemoveAt(photoIdx);
 
-            if (await _userRepository.SaveAllAsync()) return NoContent();
+            if (await userRepository.SaveAllAsync()) return NoContent();
 
             return BadRequest("Something went wrong while deleting photo.");
         }

@@ -35,13 +35,13 @@ namespace DatingApp_API.Controllers
             var sender = await _userRepository.GetUserByUsernameAsync(currentUsername);
             var recipient = await _userRepository.GetUserByUsernameAsync(createMessageDTO.RecipientUsername);
 
-            if (recipient == null || sender == null)
+            if (recipient == null || sender == null || recipient.UserName == null || sender.UserName == null)
                 return BadRequest("Can not send message at this time.");
 
             var message = new Message
             {
-                RecipientUsername = recipient.Username,
-                SenderUsername = sender.Username,
+                RecipientUsername = recipient.UserName,
+                SenderUsername = sender.UserName,
                 Sender = sender,
                 Recipient = recipient,
                 Content = createMessageDTO.Content,

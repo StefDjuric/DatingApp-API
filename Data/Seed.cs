@@ -1,16 +1,15 @@
 ﻿using DatingApp_API.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.Json;
 
 namespace DatingApp_API.Data
 {
     public class Seed
     {
-        public static async Task SeedUsers(DataContext context)
+        public static async Task SeedUsers(UserManager<User> userManager, RoleManager<AppRole> roleManager)
         {
-            if (await context.Users.AnyAsync()) return;
+            if (await userManager.Users.AnyAsync()) return;
 
             var userData = await File.ReadAllTextAsync("Data/UserSeedData.json");
             
@@ -19,17 +18,42 @@ namespace DatingApp_API.Data
 
             if (users == null) return;
 
-            foreach(var user in users)
+            var roles = new List<AppRole>
             {
-                user.Username = user.Username.ToLower().Trim();
-                using var hmac = new HMACSHA512();
-                user.Password = hmac.ComputeHash(Encoding.UTF8.GetBytes("Pa$$w0rd"));
-                user.PasswordSalt = hmac.Key;
+                new() {Name="Member"},
+                new() {Name="Admin"},
+                new() {Name="Moderator"},
 
-                context.Users.Add(user);
+            };
+
+            foreach (var role in roles)
+            {
+                await roleManager.CreateAsync(role);
+            }
+         
+            foreach (var user in users)
+            {
+                await userManager.CreateAsync(user, "Pa$$w0rd");
+                await userManager.AddToRoleAsync(user, "Member");
             }
 
-            await context.SaveChangesAsync();
+            var admin = new User
+            {
+                UserName = "admin",
+                KnownAs = "Admin",
+                Gender = "male",
+                City = "nh",
+                Country = "Bih",
+                Email = "email@fake.com",
+                DateOfBirth = DateOnly.FromDateTime(DateTime.Now),
+                Interests="",
+                Introduction="",
+                LookingFor="",
+
+            };
+
+            await userManager.CreateAsync(admin, "Pa$$w0rd");
+            await userManager.AddToRolesAsync(admin, ["Admin", "Moderator"]);
         }
     }
 }

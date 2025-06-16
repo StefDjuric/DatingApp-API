@@ -10,13 +10,13 @@ namespace DatingApp_API.Data
 {
     public class UserRepository(DataContext context, IMapper mapper) : IUserRepository
     {
-        private readonly DataContext _context = context;
+
 
         public async Task<PagedList<MemberDTO>> GetAllMembersAsync(UserParams userParams)
         {
-            var query = _context.Users.AsQueryable();
+            var query = context.Users.AsQueryable();
 
-            query = query.Where(user => user.Username != userParams.CurrentUsername);
+            query = query.Where(user => user.UserName != userParams.CurrentUsername);
 
             if(userParams.Gender != null)
             {
@@ -42,14 +42,14 @@ namespace DatingApp_API.Data
 
         public async Task<MemberDTO?> GetMemberByIdAsync(int id)
         {
-            return await _context.Users.Where(x => x.Id == id)
+            return await context.Users.Where(x => x.Id == id)
                 .ProjectTo<MemberDTO>(mapper.ConfigurationProvider)
                 .SingleOrDefaultAsync();
         }
 
         public async Task<MemberDTO?> GetMemberByUsernameAsync(string username)
         {
-            return await _context.Users.Where(x => x.Username == username)
+            return await context.Users.Where(x => x.NormalizedUserName == username.ToUpper())
                 .ProjectTo<MemberDTO>(mapper.ConfigurationProvider)
                 .SingleOrDefaultAsync(); 
         }
@@ -61,24 +61,24 @@ namespace DatingApp_API.Data
 
         public async Task<User?> GetUserByUsernameAsync(string username)
         {
-            return await _context.Users.Include(u => u.Photos)
-                .SingleOrDefaultAsync(u => u.Username == username);
+            return await context.Users.Include(u => u.Photos)
+                .SingleOrDefaultAsync(u => u.NormalizedUserName == username.ToUpper());
 
         }
 
         public async Task<IEnumerable<User>> GetUsersAsync()
         {
-            return await _context.Users.Include(u => u.Photos).ToListAsync();
+            return await context.Users.Include(u => u.Photos).ToListAsync();
         }
 
         public async Task<bool> SaveAllAsync()
         {
-             return await _context.SaveChangesAsync() > 0;
+             return await context.SaveChangesAsync() > 0;
         }
 
         public void Update(User user)
         {
-            _context.Entry(user).State = EntityState.Modified;
+            context.Entry(user).State = EntityState.Modified;
         }
     }
 }

@@ -37,9 +37,9 @@ namespace DatingApp_API.Data
 
             query = messageParams.Container switch
             {
-                "Inbox" => query.Where(x => x.Recipient.Username == messageParams.Username && x.RecipientDeleted == false),
-                "Outbox" => query.Where(x => x.Sender.Username == messageParams.Username && x.SenderDeleted == false),
-                _ => query.Where(x => x.Recipient.Username == messageParams.Username && x.DateRead == null && x.RecipientDeleted == false),
+                "Inbox" => query.Where(x => x.Recipient.UserName == messageParams.Username && x.RecipientDeleted == false),
+                "Outbox" => query.Where(x => x.Sender.UserName == messageParams.Username && x.SenderDeleted == false),
+                _ => query.Where(x => x.Recipient.UserName == messageParams.Username && x.DateRead == null && x.RecipientDeleted == false),
             };
 
             var messages = query.ProjectTo<MessageDTO>(_mapper.ConfigurationProvider);

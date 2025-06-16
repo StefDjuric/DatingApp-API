@@ -4,20 +4,17 @@ using DatingApp_API.Entities;
 using DatingApp_API.Helpers;
 using DatingApp_API.Interfaces;
 using DatingApp_API.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace DatingApp_API.Controllers
 {
     [ServiceFilter(typeof (LogUserActivity))]
     [ApiController]
     [Route("api/[controller]")]
-    public class AccountManagerController(DataContext dbContext, ITokenService tokenService, IMapper mapper) : ControllerBase
+    public class AccountManagerController(UserManager<User> userManager, ITokenService tokenService, IMapper mapper) : ControllerBase
     {
-        private readonly DataContext _dbcontext = dbContext;
-
         [HttpPost("register")]
         public async Task<ActionResult<UserDTO>> Register(RegisterDTO registerDTO)
         {
@@ -25,51 +22,44 @@ namespace DatingApp_API.Controllers
             {
                 return BadRequest("User already exists with that username or email.");
             }
-           
-
-            using var hmac = new HMACSHA512();
-
-            var hashedPassword = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password));
 
             var user = mapper.Map<User>(registerDTO);
 
-            user.Username = registerDTO.Username.ToLower();
-            user.Password = hashedPassword;
-            user.PasswordSalt = hmac.Key; 
+            user.UserName = registerDTO.Username.ToLower();
+            user.NormalizedUserName = registerDTO.Username.ToUpper();
+            user.NormalizedEmail = registerDTO.Email.ToUpper();
+                    
 
-            await _dbcontext.Users.AddAsync(user);
-            await _dbcontext.SaveChangesAsync();
+            var result = await userManager.CreateAsync(user, registerDTO.Password);
+
+            if (!result.Succeeded) return BadRequest("Coult not register user.");
 
             return new UserDTO()
             {
-                Username = user.Username,
-                Token = tokenService.CreateToken(user),
+                Username = user.UserName,
+                Token = await tokenService.CreateToken(user),
                 KnownAs = registerDTO.KnownAs,
                 Gender = user.Gender,
             };
+
 
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<UserDTO>> Login(LoginDTO loginDTO)
         {
-            var user = await _dbcontext.Users.SingleOrDefaultAsync(u => u.Email == loginDTO.EmailOrUsername.ToLower() || u.Username == loginDTO.EmailOrUsername.ToLower());
+            var user = await userManager.Users.SingleOrDefaultAsync(u => u.NormalizedEmail == loginDTO.EmailOrUsername.ToUpper() || u.NormalizedUserName == loginDTO.EmailOrUsername.ToUpper());
 
-            if (user == null) return Unauthorized("No user found with that email or username.");
+            if (user == null || user.UserName == null) return Unauthorized("No user found with that email or username.");
 
-            using var hmac = new HMACSHA512(user.PasswordSalt);
+            var result = await userManager.CheckPasswordAsync(user, loginDTO.Password);
 
-            var hashedPassword = hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDTO.Password));
-
-            for(int i = 0; i < hashedPassword.Length; i++)
-            {
-                if (user.Password[i] != hashedPassword[i]) return Unauthorized("Wrong Password.");
-            }
+            if (!result) return Unauthorized();
 
             return new UserDTO()
             {
-                Username = user.Username,
-                Token = tokenService.CreateToken(user),
+                Username = user.UserName,
+                Token = await tokenService.CreateToken(user),
                 KnownAs = user.KnownAs,
                 Gender = user.Gender,
             };
@@ -77,7 +67,7 @@ namespace DatingApp_API.Controllers
 
         private async Task<bool> UserExists(string username, string email)
         {
-            return await _dbcontext.Users.AnyAsync(u => u.Username.ToLower() == username.ToLower() || u.Email.ToLower() == email.ToLower());
+            return await userManager.Users.AnyAsync(u => u.NormalizedUserName == username.ToUpper() || u.NormalizedEmail == email.ToUpper());
         }
     }
     

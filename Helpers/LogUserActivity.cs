@@ -18,6 +18,8 @@ namespace DatingApp_API.Helpers
 
             var repo = resultContext.HttpContext.RequestServices.GetService<IUserRepository>();
 
+            if(repo == null) throw new Exception("No repository found in log user activity.");
+
             var user = await repo.GetUserByIdAsync(Convert.ToInt32(userId));
 
             if (user == null) return;
