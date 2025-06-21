@@ -3,6 +3,7 @@ using DatingApp_API.Entities;
 using DatingApp_API.Helpers;
 using DatingApp_API.Interfaces;
 using DatingApp_API.Services;
+using DatingApp_API.SignalR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -39,8 +40,10 @@ namespace DatingApp_API.ApplicationExstensions
             service.AddScoped<ILikesRepository, LikesRepository>();
             service.AddScoped<IMessageRepository, MessageRepository>();
             service.AddScoped<LogUserActivity>();
+            service.AddSingleton<PresenceTracker>();
             service.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             service.Configure<CloudinarySettings>(config.GetSection("CloudinarySettings"));
+            service.AddSignalR();
 
             return service;
         }

@@ -3,6 +3,7 @@ using DatingApp_API.ApplicationExstensions;
 using DatingApp_API.Data;
 using DatingApp_API.Entities;
 using DatingApp_API.Middleware;
+using DatingApp_API.SignalR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace DatingApp_API
 {
     public class Program
     {
-        public static async Task Main(string[] args)
+        public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +35,7 @@ namespace DatingApp_API
             {
                 opt.AllowAnyHeader();
                 opt.AllowAnyMethod();
+                opt.AllowCredentials();
                 opt.WithOrigins("http://localhost:4200", "https://localhost:4200");
             });
 
@@ -41,6 +43,8 @@ namespace DatingApp_API
             app.UseAuthorization();
 
             app.MapControllers();
+            app.MapHub<PresenceHub>("hubs/presence");
+            app.MapHub<MessageHub>("hubs/message");
 
 
             //// SEED DB
